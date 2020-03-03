@@ -15,9 +15,27 @@ use ReallyOrm\Repository\RepositoryInterface;
 abstract class AbstractEntity implements EntityInterface
 {
     /**
+     * Id of the entity
+     *
+     * @var $id
+     */
+    protected $id;
+
+    /**
      * @var RepositoryManagerInterface
      */
     protected $repositoryManager;
+
+
+    public function setId(int $id):void
+    {
+        $this->id = $id;
+    }
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
 
     /**
      * @param RepositoryManagerInterface $repositoryManager

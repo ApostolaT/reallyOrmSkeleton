@@ -39,15 +39,16 @@ class FunTest extends TestCase
         $dsn = "mysql:host={$config['host']};dbname={$config['db']};charset={$config['charset']}";
 
         $options = [
-            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_EMULATE_PREPARES   => false,
+            PDO::ATTR_EMULATE_PREPARES => false,
         ];
 
         $this->pdo = new PDO($dsn, $config['user'], $config['pass'], $options);
-        $this->hydrator = new Hydrator();
+        $this->repoManager = new RepositoryManager();
+        $this->hydrator = new Hydrator($this->repoManager);
         $this->userRepo = new UserRepository($this->pdo, User::class, $this->hydrator);
-        $this->repoManager = new RepositoryManager([$this->userRepo]);
+        $this->repoManager->addRepository($this->userRepo);
     }
 
 
@@ -64,11 +65,11 @@ class FunTest extends TestCase
 
     public function testUpdateUser(): void
     {
-        $user = $this->userRepo->find(1);
+        $user = $this->userRepo->find(2);
         $user->setEmail('other email');
 
-        //echo $user->getId();
-        //echo $user->getEmail();
+        var_dump($user->getId());
+        var_dump($user->getEmail());
 
         $result = $user->save();
 
@@ -78,8 +79,8 @@ class FunTest extends TestCase
     public function testFind(): void
     {
         /** @var User $user */
-        $user = $this->userRepo->find(1);
+        $user = $this->userRepo->find(2);
 
-        $this->assertEquals(1, $user->getId());
+        $this->assertEquals(2, $user->getId());
     }
 }

@@ -63,4 +63,148 @@ abstract class AbstractRepository implements RepositoryInterface
     {
         return $this->entityName;
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function find(int $id): ?EntityInterface
+    {
+        $tableName = $this->createTableName();
+
+        $query = $this->pdo->prepare("SELECT * FROM $tableName WHERE id = :id");
+        $query->bindParam(':id', $id, PDO::PARAM_INT);
+        $query->execute();
+        $result = $query->fetch();// PDO::FETCH_ASSOC if needed
+
+        $entity = $this->hydrator->hydrate($this->getEntityName(), $result);
+        $this->hydrator->hydrateId($entity, $id);
+
+        return $entity;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function findOneBy(array $filters): ?EntityInterface
+    {
+        $tableName = $this->createTableName();
+
+        $queryString = "SELECT * FROM $tableName WHERE ";
+        foreach ($filters as $key => $value) {
+            $queryString .= $key." = :".$key." AND ";
+        }
+        $queryString = substr($queryString, 0, strlen($queryString) - 5);
+        $queryString .= " LIMIT 1";
+        $query = $this->pdo->prepare($queryString);
+        foreach ($filters as $key => &$value) {
+            $query->bindParam(':'.$key, $value);
+        }
+        $query->execute();
+
+        $result = $query->fetch();
+        $entity = $this->hydrator->hydrate($this->getEntityName(), $result);
+        $this->hydrator->hydrateId($entity, $result["id"]);
+
+        return $entity;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function findBy(array $filters, array $sorts, int $from, int $size): array
+    {
+        $tableName = $this->createTableName();
+
+        $queryString = "SELECT * FROM $tableName WHERE ";
+        foreach ($filters as $key => $value) {
+            $queryString .= $key . " = :" . $key . " AND ";
+        }
+        $queryString = substr($queryString, 0, strlen($queryString) - 5);
+        $queryString .= " ORDER BY ";
+        foreach ($sorts as $key => $value) {
+            $queryString .= $key . " " . $value . ", ";
+        }
+        $queryString = substr($queryString, 0, strlen($queryString) - 2);
+        $queryString .= " LIMIT :size OFFSET :from";
+        $query = $this->pdo->prepare($queryString);
+        foreach ($filters as $key => &$value) {
+            $query->bindParam(':'.$key, $value);
+        }
+        $query->bindParam(":size", $size);
+        $query->bindParam(":from", $from);
+        $query->execute();
+
+        $results = $query->fetchAll(PDO::FETCH_ASSOC);
+        $entities = [];
+        foreach ($results as $result) {
+            $entity = $this->hydrator->hydrate($this->getEntityName(), $result);
+            $this->hydrator->hydrateId($entity, $result["id"]);
+            $entities[] = $entity;
+        }
+
+        return $entities;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function insertOnDuplicateKeyUpdate(EntityInterface $entity): bool
+    {
+        $tableName = $this->createTableName();
+        $params = $this->hydrator->extract($entity);
+        $columns = implode(", ", array_keys($params));
+
+        $values = "";
+        foreach ($params as $key => $value) {
+            $values .= ":$key, ";
+        }
+        $values = substr($values, 0 , strlen($values) - 2);
+        $queryString = "INSERT INTO $tableName (id, $columns) VALUES (:id, $values) ";
+        $queryString .= "ON DUPLICATE KEY UPDATE ";
+        foreach ($params as $key => $value) {
+            $queryString .= "$key = VALUES($key), ";
+        }
+        $queryString = substr($queryString, 0 , strlen($queryString) - 2);
+        $query = $this->pdo->prepare($queryString);
+        $id = $entity->getId();
+        $query->bindParam(":id", $id);
+
+        foreach ($params as $key => &$value) {
+            $query->bindParam(":".$key, $value);
+        }
+
+        return $query->execute();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function delete(EntityInterface $entity): bool
+    {
+        $tableName = $this->createTableName();
+        $queryString = "DELETE FROM $tableName WHERE id  = :id";
+        $query = $this->pdo->prepare($queryString);
+        $id = $entity->getId();
+        $query->bindParam(":id", $id);
+        $query->execute();
+
+        return $query->rowCount() > 0;
+    }
+
+    protected function createTableName(): string
+    {
+        $class = $this->getEntityName();
+        if (!$class) {
+            throw new NoClassException();
+        }
+
+        $paths = explode('\\', $class);
+        $tableName = $paths[count($paths) - 1];
+
+        if (!isset($tableName)) {
+            throw new NoClassException();
+        }
+
+        return strtolower($paths[count($paths) - 1]);
+    }
 }

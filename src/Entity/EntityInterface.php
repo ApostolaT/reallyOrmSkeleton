@@ -14,6 +14,20 @@ use ReallyOrm\Repository\RepositoryManagerInterface;
 interface EntityInterface
 {
     /**
+     * Should be used to set the id of the entity.
+     *
+     * @param int $id
+     */
+    public function setId(int $id):void;
+
+    /**
+     * Should ne used to get the id of the entity.
+     *
+     * @return int
+     */
+    public function getId(): ?int;
+
+    /**
      * Should be called in RepositoryManagerInterface::register().
      *
      * @param RepositoryManagerInterface $repositoryManager
