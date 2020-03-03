@@ -119,8 +119,18 @@ abstract class AbstractRepository implements RepositoryInterface
     public function insertOnDuplicateKeyUpdate(EntityInterface $entity): bool
     {
         $query = $this->createInsertOnDuplicateQuery($entity);
+        $query->execute();
 
-        return $query->execute();
+        if ($query->execute() === 0 ) {
+            return false;
+        }
+
+        $id = $this->pdo->lastInsertId();
+        if ($id !== 0){
+            $entity->setId($id);
+        }
+
+        return true;
     }
 
     /**

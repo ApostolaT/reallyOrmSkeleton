@@ -68,8 +68,8 @@ class FunTest extends TestCase
         $user = $this->userRepo->find(2);
         $user->setEmail('other email');
 
-        var_dump($user->getId());
-        var_dump($user->getEmail());
+//        var_dump($user->getId());
+//        var_dump($user->getEmail());
 
         $result = $user->save();
 
