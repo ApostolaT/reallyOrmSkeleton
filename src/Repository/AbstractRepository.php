@@ -69,10 +69,7 @@ abstract class AbstractRepository implements RepositoryInterface
      */
     public function find(int $id): ?EntityInterface
     {
-        $tableName = $this->createTableName();
-
-        $query = $this->pdo->prepare("SELECT * FROM $tableName WHERE id = :id");
-        $query->bindParam(':id', $id, PDO::PARAM_INT);
+        $query = $this->createFindIdQuery($id);
         $query->execute();
         $result = $query->fetch();// PDO::FETCH_ASSOC if needed
 
@@ -87,6 +84,85 @@ abstract class AbstractRepository implements RepositoryInterface
      */
     public function findOneBy(array $filters): ?EntityInterface
     {
+        $query = $this->createFindOneByQuery($filters);
+        $query->execute();
+        $result = $query->fetch();
+
+        $entity = $this->hydrator->hydrate($this->getEntityName(), $result);
+        $this->hydrator->hydrateId($entity, $result["id"]);
+
+        return $entity;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function findBy(array $filters, array $sorts, int $from, int $size): array
+    {
+        $query = $this->createFindByQuery($filters, $sorts, $from, $size);
+        $query->execute();
+        $results = $query->fetchAll();
+
+        $entities = [];
+        foreach ($results as $result) {
+            $entity = $this->hydrator->hydrate($this->getEntityName(), $result);
+            $this->hydrator->hydrateId($entity, $result["id"]);
+            $entities[] = $entity;
+        }
+
+        return $entities;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function insertOnDuplicateKeyUpdate(EntityInterface $entity): bool
+    {
+        $query = $this->createInsertOnDuplicateQuery($entity);
+
+        return $query->execute();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function delete(EntityInterface $entity): bool
+    {
+        $query = $this->createDeleteQuery($entity);
+        $query->execute();
+
+        return $query->rowCount() > 0;
+    }
+
+    protected function createTableName(): string
+    {
+        $class = $this->getEntityName();
+        if (!$class) {
+            throw new NoClassException();
+        }
+
+        $paths = explode('\\', $class);
+        $tableName = $paths[count($paths) - 1];
+
+        if (!isset($tableName)) {
+            throw new NoClassException();
+        }
+
+        return strtolower($paths[count($paths) - 1]);
+    }
+
+    private function createFindIdQuery(int $id)
+    {
+        $tableName = $this->createTableName();
+
+        $query = $this->pdo->prepare("SELECT * FROM $tableName WHERE id = :id");
+        $query->bindParam(':id', $id, PDO::PARAM_INT);
+
+        return $query;
+    }
+
+    private function createFindOneByQuery(array $filters)
+    {
         $tableName = $this->createTableName();
 
         $queryString = "SELECT * FROM $tableName WHERE ";
@@ -99,19 +175,11 @@ abstract class AbstractRepository implements RepositoryInterface
         foreach ($filters as $key => &$value) {
             $query->bindParam(':'.$key, $value);
         }
-        $query->execute();
 
-        $result = $query->fetch();
-        $entity = $this->hydrator->hydrate($this->getEntityName(), $result);
-        $this->hydrator->hydrateId($entity, $result["id"]);
-
-        return $entity;
+        return $query;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function findBy(array $filters, array $sorts, int $from, int $size): array
+    private function createFindByQuery(array $filters, array $sorts, int $size, int $from)
     {
         $tableName = $this->createTableName();
 
@@ -132,23 +200,11 @@ abstract class AbstractRepository implements RepositoryInterface
         }
         $query->bindParam(":size", $size);
         $query->bindParam(":from", $from);
-        $query->execute();
 
-        $results = $query->fetchAll(PDO::FETCH_ASSOC);
-        $entities = [];
-        foreach ($results as $result) {
-            $entity = $this->hydrator->hydrate($this->getEntityName(), $result);
-            $this->hydrator->hydrateId($entity, $result["id"]);
-            $entities[] = $entity;
-        }
-
-        return $entities;
+        return $query;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function insertOnDuplicateKeyUpdate(EntityInterface $entity): bool
+    private function createInsertOnDuplicateQuery(EntityInterface $entity)
     {
         $tableName = $this->createTableName();
         $params = $this->hydrator->extract($entity);
@@ -173,38 +229,17 @@ abstract class AbstractRepository implements RepositoryInterface
             $query->bindParam(":".$key, $value);
         }
 
-        return $query->execute();
+        return $query;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function delete(EntityInterface $entity): bool
+    private function createDeleteQuery(EntityInterface $entity)
     {
         $tableName = $this->createTableName();
         $queryString = "DELETE FROM $tableName WHERE id  = :id";
         $query = $this->pdo->prepare($queryString);
         $id = $entity->getId();
         $query->bindParam(":id", $id);
-        $query->execute();
 
-        return $query->rowCount() > 0;
-    }
-
-    protected function createTableName(): string
-    {
-        $class = $this->getEntityName();
-        if (!$class) {
-            throw new NoClassException();
-        }
-
-        $paths = explode('\\', $class);
-        $tableName = $paths[count($paths) - 1];
-
-        if (!isset($tableName)) {
-            throw new NoClassException();
-        }
-
-        return strtolower($paths[count($paths) - 1]);
+        return $entity;
     }
 }
