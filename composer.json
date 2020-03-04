@@ -1,5 +1,5 @@
 {
-  "name": "really-orm-skeleton",
+  "name": "really-orm-skeleton/really-orm-skeleton",
   "description": "Really? ORM?",
   "keywords": ["orm", "php", "pdo", "active record"],
   "type": "library",
