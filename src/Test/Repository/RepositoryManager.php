@@ -48,7 +48,7 @@ class RepositoryManager implements RepositoryManagerInterface
      */
     public function addRepository(RepositoryInterface $repository): RepositoryManagerInterface
     {
-        $this->repoManager[$repository->getEntityName()] = $repository;
+        $this->repoManager[get_class($repository)] = $repository;
 
         return $this;
     }

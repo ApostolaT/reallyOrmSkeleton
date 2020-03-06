@@ -144,6 +144,12 @@ abstract class AbstractRepository implements RepositoryInterface
         return $query->rowCount() > 0;
     }
 
+    // TODO create functions to Join tables on rows
+    public function joinEntitiesOnParam(EntityInterface $sourceEntity, EntityInterface $targetEntity, string $param)
+    {
+
+    }
+
     protected function createTableName(): string
     {
         $class = $this->getEntityName();
