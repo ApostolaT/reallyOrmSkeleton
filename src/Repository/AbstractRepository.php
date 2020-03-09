@@ -213,16 +213,24 @@ abstract class AbstractRepository implements RepositoryInterface
     {
         $tableName = $this->createTableName();
 
-        $queryString = "SELECT * FROM $tableName WHERE ";
-        foreach ($filters as $key => $value) {
-            $queryString .= $key . " = :" . $key . " AND ";
+        $queryString = "SELECT * FROM $tableName ";
+        if (isset($filters)) {
+            $queryString .= "WHERE ";
+
+            foreach ($filters as $key => $value) {
+                $queryString .= $key . " = :" . $key . " AND ";
+            }
+            $queryString = substr($queryString, 0, strlen($queryString) - 5);
         }
-        $queryString = substr($queryString, 0, strlen($queryString) - 5);
-        $queryString .= " ORDER BY ";
-        foreach ($sorts as $key => $value) {
-            $queryString .= $key . " " . $value . ", ";
+        if (isset($sorts)) {
+            $queryString .= " ORDER BY ";
+
+            foreach ($sorts as $key => $value) {
+                $queryString .= $key . " " . $value . ", ";
+            }
+            $queryString = substr($queryString, 0, strlen($queryString) - 2);
         }
-        $queryString = substr($queryString, 0, strlen($queryString) - 2);
+
         $queryString .= " LIMIT :size OFFSET :from";
         $query = $this->pdo->prepare($queryString);
         foreach ($filters as $key => &$value) {
