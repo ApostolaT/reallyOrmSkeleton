@@ -74,6 +74,10 @@ abstract class AbstractRepository implements RepositoryInterface
         $query->execute();
         $result = $query->fetch();// PDO::FETCH_ASSOC if needed
 
+        if (!$result) {
+            throw new NoSuchRowException();
+        }
+
         $entity = $this->hydrator->hydrate($this->getEntityName(), $result);
         $this->hydrator->hydrateId($entity, $id);
 
@@ -88,6 +92,10 @@ abstract class AbstractRepository implements RepositoryInterface
         $query = $this->createFindOneByQuery($filters);
         $query->execute();
         $result = $query->fetch();
+
+        if (!$result) {
+            throw new NoSuchRowException();
+        }
 
         $entity = $this->hydrator->hydrate($this->getEntityName(), $result);
         $this->hydrator->hydrateId($entity, $result["id"]);
