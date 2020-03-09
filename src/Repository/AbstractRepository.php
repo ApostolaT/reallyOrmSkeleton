@@ -178,7 +178,7 @@ abstract class AbstractRepository implements RepositoryInterface
             throw new NoClassException();
         }
 
-        return strtolower($paths[count($paths) - 1]);
+        return lcfirst($paths[count($paths) - 1]);
     }
 
     private function createFindIdQuery(int $id)
@@ -214,7 +214,7 @@ abstract class AbstractRepository implements RepositoryInterface
         $tableName = $this->createTableName();
 
         $queryString = "SELECT * FROM $tableName ";
-        if (isset($filters)) {
+        if ($filters !== []) {
             $queryString .= "WHERE ";
 
             foreach ($filters as $key => $value) {
@@ -222,7 +222,7 @@ abstract class AbstractRepository implements RepositoryInterface
             }
             $queryString = substr($queryString, 0, strlen($queryString) - 5);
         }
-        if (isset($sorts)) {
+        if ($sorts !== []) {
             $queryString .= " ORDER BY ";
 
             foreach ($sorts as $key => $value) {
@@ -233,8 +233,15 @@ abstract class AbstractRepository implements RepositoryInterface
 
         $queryString .= " LIMIT :size OFFSET :from";
         $query = $this->pdo->prepare($queryString);
-        foreach ($filters as $key => &$value) {
-            $query->bindParam(':'.$key, $value);
+        if ($filters !== []) {
+            foreach ($filters as $key => &$value) {
+                $query->bindParam(':' . $key, $value);
+            }
+        }
+        if ($sorts !== []) {
+            foreach ($sorts as $key => &$value) {
+                $query->bindParam(':' . $key, $value);
+            }
         }
         $query->bindParam(":size", $size);
         $query->bindParam(":from", $from);
