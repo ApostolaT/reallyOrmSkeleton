@@ -4,6 +4,7 @@ namespace ReallyOrm\Repository;
 
 use PDO;
 use ReallyOrm\Entity\EntityInterface;
+use ReallyOrm\Exceptions\NoSuchRowException;
 use ReallyOrm\Hydrator\HydratorInterface;
 
 /**
@@ -96,12 +97,17 @@ abstract class AbstractRepository implements RepositoryInterface
 
     /**
      * @inheritDoc
+     * @throws NoSuchRowException
      */
     public function findBy(array $filters, array $sorts, int $from, int $size): array
     {
         $query = $this->createFindByQuery($filters, $sorts, $from, $size);
         $query->execute();
         $results = $query->fetchAll();
+
+        if (!$results) {
+            throw new NoSuchRowException();
+        }
 
         $entities = [];
         foreach ($results as $result) {
