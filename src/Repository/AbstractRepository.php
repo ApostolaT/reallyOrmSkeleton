@@ -133,9 +133,9 @@ abstract class AbstractRepository implements RepositoryInterface
     public function insertOnDuplicateKeyUpdate(EntityInterface $entity): bool
     {
         $query = $this->createInsertOnDuplicateQuery($entity);
-        $query->execute();
+        $reusult = $query->execute();
 
-        if ($query->execute() === 0 ) {
+        if ($reusult === 0 ) {
             return false;
         }
 
@@ -230,8 +230,12 @@ abstract class AbstractRepository implements RepositoryInterface
             }
             $queryString = substr($queryString, 0, strlen($queryString) - 2);
         }
-
-        $queryString .= " LIMIT :size OFFSET :from";
+        if ($size !== 0) {
+            $queryString .= " LIMIT :size ";
+        }
+        if ($from !== 0) {
+            $queryString .= "OFFSET :from";
+        }
         $query = $this->pdo->prepare($queryString);
         if ($filters !== []) {
             foreach ($filters as $key => &$value) {
@@ -243,8 +247,12 @@ abstract class AbstractRepository implements RepositoryInterface
                 $query->bindParam(':' . $key, $value);
             }
         }
-        $query->bindParam(":size", $size);
-        $query->bindParam(":from", $from);
+        if ($size !== 0) {
+            $query->bindParam(":size", $size);
+        }
+        if ($from !== 0) {
+            $query->bindParam(":from", $from);
+        }
 
         return $query;
     }
