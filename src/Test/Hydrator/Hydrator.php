@@ -84,7 +84,7 @@ class Hydrator implements HydratorInterface
                     continue;
                 }
 
-                $name = substr(strtolower(strstr($method->getName(), "set")), 3);
+                $name = substr(lcfirst(strstr($method->getName(), "set")), 3);
                 if (!isset($data[$name]))
                     continue;
 
