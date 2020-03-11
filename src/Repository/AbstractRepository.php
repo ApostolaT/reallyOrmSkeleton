@@ -298,6 +298,6 @@ abstract class AbstractRepository implements RepositoryInterface
         $id = $entity->getId();
         $query->bindParam(":id", $id);
 
-        return $entity;
+        return $query;
     }
 }
