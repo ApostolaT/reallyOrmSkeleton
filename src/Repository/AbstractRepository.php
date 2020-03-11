@@ -273,7 +273,9 @@ abstract class AbstractRepository implements RepositoryInterface
             $values .= ":$key, ";
         }
         $values = substr($values, 0 , strlen($values) - 2);
-        $queryString = "INSERT INTO $tableName (id, $columns) VALUES (:id, $values) ";
+        $queryString = "INSERT INTO $tableName (".
+            (isset($params["id"]) ? "id," : '')."$columns) VALUES (".
+            (isset($params["id"]) ? ":id" : ""). "$values) ";
         $queryString .= "ON DUPLICATE KEY UPDATE ";
         foreach ($params as $key => $value) {
             $queryString .= "$key = VALUES($key), ";
@@ -281,7 +283,9 @@ abstract class AbstractRepository implements RepositoryInterface
         $queryString = substr($queryString, 0 , strlen($queryString) - 2);
         $query = $this->pdo->prepare($queryString);
         $id = $entity->getId();
-        $query->bindParam(":id", $id);
+        if (isset($params['id'])) {
+            $query->bindParam(":id", $id);
+        }
 
         foreach ($params as $key => &$value) {
             $query->bindParam(":".$key, $value);
