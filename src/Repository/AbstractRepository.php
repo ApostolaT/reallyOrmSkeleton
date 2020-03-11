@@ -158,6 +158,11 @@ abstract class AbstractRepository implements RepositoryInterface
         return $query->rowCount() > 0;
     }
 
+    public function getNumberOfInserts()
+    {
+        $this->pdo->rowCount();
+    }
+
     // TODO create functions to Join tables on rows
     public function joinEntitiesOnParam(EntityInterface $sourceEntity, EntityInterface $targetEntity, string $param)
     {
