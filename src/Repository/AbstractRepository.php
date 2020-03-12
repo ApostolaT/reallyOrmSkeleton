@@ -276,6 +276,7 @@ abstract class AbstractRepository implements RepositoryInterface
         $tableName = $this->createTableName();
         $params = $this->hydrator->extract($entity);
         $columns = implode(", ", array_keys($params));
+        $id = $entity->getId();
 
         $values = "";
         foreach ($params as $key => $value) {
@@ -283,8 +284,8 @@ abstract class AbstractRepository implements RepositoryInterface
         }
         $values = substr($values, 0 , strlen($values) - 2);
         $queryString = "INSERT INTO $tableName (".
-            (isset($params["id"]) ? "id," : '')."$columns) VALUES (".
-            (isset($params["id"]) ? ":id" : ""). "$values) ";
+            (isset($id) ? "id, " : '')."$columns) VALUES (".
+            (isset($id) ? ":id, " : ""). "$values) ";
         $queryString .= "ON DUPLICATE KEY UPDATE ";
         foreach ($params as $key => $value) {
             $queryString .= "$key = VALUES($key), ";
@@ -292,7 +293,7 @@ abstract class AbstractRepository implements RepositoryInterface
         $queryString = substr($queryString, 0 , strlen($queryString) - 2);
         $query = $this->pdo->prepare($queryString);
         $id = $entity->getId();
-        if (isset($params['id'])) {
+        if (isset($id)) {
             $query->bindParam(":id", $id);
         }
 
