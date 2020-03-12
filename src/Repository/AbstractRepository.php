@@ -98,7 +98,9 @@ abstract class AbstractRepository implements RepositoryInterface
         }
 
         $entity = $this->hydrator->hydrate($this->getEntityName(), $result);
-        $this->hydrator->hydrateId($entity, $result["id"]);
+        if (key_exists('id', $result)) {
+            $this->hydrator->hydrateId($entity, $result["id"]);
+        }
 
         return $entity;
     }
@@ -120,7 +122,9 @@ abstract class AbstractRepository implements RepositoryInterface
         $entities = [];
         foreach ($results as $result) {
             $entity = $this->hydrator->hydrate($this->getEntityName(), $result);
-            $this->hydrator->hydrateId($entity, $result["id"]);
+            if (key_exists('id', $result)) {
+                $this->hydrator->hydrateId($entity, $result["id"]);
+            }
             $entities[] = $entity;
         }
 
