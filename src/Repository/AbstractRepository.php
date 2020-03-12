@@ -163,6 +163,11 @@ abstract class AbstractRepository implements RepositoryInterface
         $this->pdo->rowCount();
     }
 
+    public function getLastInsertedId(): string
+    {
+        return $this->pdo->lastInsertId();
+    }
+
     // TODO create functions to Join tables on rows
     public function joinEntitiesOnParam(EntityInterface $sourceEntity, EntityInterface $targetEntity, string $param)
     {
