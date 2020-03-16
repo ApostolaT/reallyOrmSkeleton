@@ -29,7 +29,6 @@ class RepositoryManager implements RepositoryManagerInterface
         $entity->setRepositoryManager($this);
     }
 
-
     /**
      * @inheritDoc
      * @throws \Exception
@@ -48,7 +47,7 @@ class RepositoryManager implements RepositoryManagerInterface
      */
     public function addRepository(RepositoryInterface $repository): RepositoryManagerInterface
     {
-        $this->repoManager[get_class($repository)] = $repository;
+        $this->repoManager[$repository->getEntityName()] = $repository;
 
         return $this;
     }
