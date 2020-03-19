@@ -178,6 +178,14 @@ abstract class AbstractRepository implements RepositoryInterface
 
     }
 
+    public function countRows()
+    {
+        $query = $this->createCountQuery();
+        $query->execute();
+
+        return $query->fetch();
+    }
+
     protected function createTableName(): string
     {
         $class = $this->getEntityName();
@@ -193,6 +201,12 @@ abstract class AbstractRepository implements RepositoryInterface
         }
 
         return lcfirst($paths[count($paths) - 1]);
+    }
+
+    private function createCountQuery()
+    {
+        $tableName = $this->createTableName();
+        return $this->pdo->prepare("SELECT COUNT(*) as rows FROM $tableName");
     }
 
     private function createFindIdQuery(int $id)
