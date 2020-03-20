@@ -88,6 +88,6 @@ abstract class AbstractEntity implements EntityInterface
             return false;
         }
 
-        $this->getRepository()->delete($this);
+        return $this->getRepository()->delete($this);
     }
 }
