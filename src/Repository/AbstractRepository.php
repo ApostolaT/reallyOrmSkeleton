@@ -191,7 +191,7 @@ abstract class AbstractRepository implements RepositoryInterface
      * @param array $filters
      * @return mixed
      */
-    public function countRowsBy(array $filters): array
+    public function countRowsBy(array $filters): int
     {
         $tableName = $this->createTableName();
         $queryString = "SELECT COUNT(*) as rows FROM $tableName ";
@@ -210,7 +210,7 @@ abstract class AbstractRepository implements RepositoryInterface
         }
         $query->execute();
 
-        return $query->fetch();
+        return $query->fetchColumn();
     }
 
     protected function createTableName(): string
