@@ -5,6 +5,7 @@ namespace ReallyOrm\Test\Repository;
 
 
 use ReallyOrm\Entity\EntityInterface;
+use ReallyOrm\Exceptions\NoSuchRowException;
 use ReallyOrm\Repository\RepositoryInterface;
 use ReallyOrm\Repository\RepositoryManagerInterface;
 
@@ -31,12 +32,12 @@ class RepositoryManager implements RepositoryManagerInterface
 
     /**
      * @inheritDoc
-     * @throws \Exception
+     * @throws NoSuchRowException
      */
     public function getRepository(string $className): RepositoryInterface
     {
         if (!isset($this->repoManager[$className])) {
-            throw new noSuchRepositoryError();
+            throw new NoSuchRowException();
         }
 
         return $this->repoManager[$className];
