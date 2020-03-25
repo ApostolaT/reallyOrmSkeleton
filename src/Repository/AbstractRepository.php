@@ -185,7 +185,6 @@ abstract class AbstractRepository implements RepositoryInterface
 
         return $query->fetch();
     }
-
     /**
      * This function counts all the table rows from the database
      * that have the columns with filter values
@@ -194,19 +193,20 @@ abstract class AbstractRepository implements RepositoryInterface
      */
     public function countRowsBy(array $filters): array
     {
-        if (!$filters) {
-            return ['rows' => 0];
-        }
-
         $tableName = $this->createTableName();
-        $queryString = "SELECT COUNT(*) as rows FROM $tableName WHERE ";
-        foreach ($filters as $key => $value) {
-            $queryString .= $key . " = :" . $key . " AND ";
+        $queryString = "SELECT COUNT(*) as rows FROM $tableName ";
+        if ($filters !== []) {
+            $queryString .= "WHERE ";
+            foreach ($filters as $key => $value) {
+                $queryString .= $key . " = :" . $key . " AND ";
+            }
+            $queryString = substr($queryString, 0, strlen($queryString) - 5);
         }
-        $queryString = substr($queryString, 0, strlen($queryString) - 5);
         $query = $this->pdo->prepare($queryString);
-        foreach ($filters as $key => &$value) {
-            $query->bindParam(':'.$key, $value);
+        if ($filters !== []) {
+            foreach ($filters as $key => &$value) {
+                $query->bindParam(':' . $key, $value);
+            }
         }
         $query->execute();
 
