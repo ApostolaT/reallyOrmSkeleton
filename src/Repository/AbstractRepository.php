@@ -186,6 +186,33 @@ abstract class AbstractRepository implements RepositoryInterface
         return $query->fetch();
     }
 
+    /**
+     * This function counts all the table rows from the database
+     * that have the columns with filter values
+     * @param array $filters
+     * @return mixed
+     */
+    public function countRowsBy(array $filters): array
+    {
+        if (!$filters) {
+            return ['rows' => 0];
+        }
+
+        $tableName = $this->createTableName();
+        $queryString = "SELECT COUNT(*) as rows FROM $tableName WHERE ";
+        foreach ($filters as $key => $value) {
+            $queryString .= $key . " = :" . $key . " AND ";
+        }
+        $queryString = substr($queryString, 0, strlen($queryString) - 5);
+        $query = $this->pdo->prepare($queryString);
+        foreach ($filters as $key => &$value) {
+            $query->bindParam(':'.$key, $value);
+        }
+        $query->execute();
+
+        return $query->fetch();
+    }
+
     protected function createTableName(): string
     {
         $class = $this->getEntityName();
