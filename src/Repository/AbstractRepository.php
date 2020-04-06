@@ -185,13 +185,15 @@ abstract class AbstractRepository implements RepositoryInterface
 
         return $query->fetch();
     }
+
     /**
      * This function counts all the table rows from the database
      * that have the columns with filter values
      * @param array $filters
+     * @param array $searchParams
      * @return mixed
      */
-    public function countRowsBy(array $filters): int
+    public function countRowsBy(array $filters, array $searchParams): int
     {
         $tableName = $this->createTableName();
         $queryString = "SELECT COUNT(*) as rows FROM $tableName ";
@@ -202,9 +204,21 @@ abstract class AbstractRepository implements RepositoryInterface
             }
             $queryString = substr($queryString, 0, strlen($queryString) - 5);
         }
+        if ($searchParams !== []) {
+            $queryString .= ($filters !== []) ? " AND " : "WHERE ";
+            foreach ($searchParams as $key => $value) {
+                $queryString .= $key . " LIKE :" . $key . " AND ";
+            }
+            $queryString = substr($queryString, 0, strlen($queryString) - 5);
+        }
         $query = $this->pdo->prepare($queryString);
         if ($filters !== []) {
             foreach ($filters as $key => &$value) {
+                $query->bindParam(':' . $key, $value);
+            }
+        }
+        if ($searchParams !== []) {
+            foreach ($searchParams as $key => &$value) {
                 $query->bindParam(':' . $key, $value);
             }
         }
