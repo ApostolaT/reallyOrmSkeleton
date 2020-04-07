@@ -115,7 +115,7 @@ abstract class AbstractRepository implements RepositoryInterface
      * @inheritDoc
      * @throws NoSuchRowException
      */
-    public function findBy(array $filters, array $searchParams, array $sorts, int $from, int $size): array
+    public function findBy(array $filters, string $searchParams, array $sorts, int $from, int $size): array
     {
         $query = $this->createFindByQuery($filters, $searchParams, $sorts, $from, $size);
         $query->execute();
@@ -199,7 +199,7 @@ abstract class AbstractRepository implements RepositoryInterface
      * @param array $searchParams
      * @return mixed
      */
-    public function countRowsBy(array $filters, array $searchParams): int
+    public function countRowsBy(array $filters, string $searchParam): int
     {
         $tableName = $this->createTableName();
         $queryString = "SELECT COUNT(*) as rows FROM $tableName ";
@@ -210,10 +210,10 @@ abstract class AbstractRepository implements RepositoryInterface
             }
             $queryString = substr($queryString, 0, strlen($queryString) - 5);
         }
-        if ($searchParams !== []) {
+        if ($searchParam !== "") {
             $queryString .= ($filters !== []) ? " AND " : "WHERE ";
-            foreach ($searchParams as $key => $value) {
-                $queryString .= $key . " LIKE :" . $key . " AND ";
+            foreach ($this->getSearchableFields() as $columnName) {
+                $queryString .= $columnName . " LIKE :" . $columnName . " AND ";
             }
             $queryString = substr($queryString, 0, strlen($queryString) - 5);
         }
@@ -223,9 +223,9 @@ abstract class AbstractRepository implements RepositoryInterface
                 $query->bindValue(':' . $key, $value);
             }
         }
-        if ($searchParams !== []) {
-            foreach ($searchParams as $key => &$value) {
-                $query->bindValue(':' . $key, $value);
+        if ($searchParam !== "") {
+            foreach ($this->getSearchableFields() as $columnName) {
+                $query->bindValue(':' . $columnName, "%".$searchParam."%");
             }
         }
         $query->execute();
@@ -284,7 +284,7 @@ abstract class AbstractRepository implements RepositoryInterface
         return $query;
     }
 
-    private function createFindByQuery(array $filters, array $searchParams, array $sorts, int $size, int $from)
+    private function createFindByQuery(array $filters, string $searchParam, array $sorts, int $size, int $from)
     {
         $tableName = $this->createTableName();
 
@@ -297,10 +297,10 @@ abstract class AbstractRepository implements RepositoryInterface
             }
             $queryString = substr($queryString, 0, strlen($queryString) - 5);
         }
-        if ($searchParams !== []) {
+        if ($searchParam !== "") {
             $queryString .= ($filters !== []) ? " AND " : "WHERE ";
-            foreach ($searchParams as $key => $value) {
-                $queryString .= $key . " LIKE :" . $key . " AND ";
+            foreach ($this->getSearchableFields() as $columnName) {
+                $queryString .= $columnName . " LIKE :" . $columnName . " AND ";
             }
             $queryString = substr($queryString, 0, strlen($queryString) - 5);
         }
@@ -324,9 +324,9 @@ abstract class AbstractRepository implements RepositoryInterface
                 $query->bindParam(':' . $key, $value);
             }
         }
-        if ($searchParams !== []) {
-            foreach ($searchParams as $key => &$value) {
-                $query->bindValue(':' . $key, $value);
+        if ($searchParam !== "") {
+            foreach ($this->getSearchableFields() as $columnName) {
+                $query->bindValue(':' . $columnName, "%".$searchParam."%");
             }
         }
         if ($sorts !== []) {
