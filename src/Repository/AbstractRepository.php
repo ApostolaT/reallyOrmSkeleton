@@ -109,9 +109,9 @@ abstract class AbstractRepository implements RepositoryInterface
      * @inheritDoc
      * @throws NoSuchRowException
      */
-    public function findBy(array $filters, array $sorts, int $from, int $size): array
+    public function findBy(array $filters, array $searchParams, array $sorts, int $from, int $size): array
     {
-        $query = $this->createFindByQuery($filters, $sorts, $from, $size);
+        $query = $this->createFindByQuery($filters, $searchParams, $sorts, $from, $size);
         $query->execute();
         $results = $query->fetchAll();
 
@@ -278,7 +278,7 @@ abstract class AbstractRepository implements RepositoryInterface
         return $query;
     }
 
-    private function createFindByQuery(array $filters, array $sorts, int $size, int $from)
+    private function createFindByQuery(array $filters, array $searchParams, array $sorts, int $size, int $from)
     {
         $tableName = $this->createTableName();
 
@@ -288,6 +288,13 @@ abstract class AbstractRepository implements RepositoryInterface
 
             foreach ($filters as $key => $value) {
                 $queryString .= $key . " = :" . $key . " AND ";
+            }
+            $queryString = substr($queryString, 0, strlen($queryString) - 5);
+        }
+        if ($searchParams !== []) {
+            $queryString .= ($filters !== []) ? " AND " : "WHERE ";
+            foreach ($searchParams as $key => $value) {
+                $queryString .= $key . " LIKE :" . $key . " AND ";
             }
             $queryString = substr($queryString, 0, strlen($queryString) - 5);
         }
@@ -309,6 +316,11 @@ abstract class AbstractRepository implements RepositoryInterface
         if ($filters !== []) {
             foreach ($filters as $key => &$value) {
                 $query->bindParam(':' . $key, $value);
+            }
+        }
+        if ($searchParams !== []) {
+            foreach ($searchParams as $key => $value) {
+                $query->bindValue(':' . $key, '%'.$value.'%');
             }
         }
         if ($sorts !== []) {

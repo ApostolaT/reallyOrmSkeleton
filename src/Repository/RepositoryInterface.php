@@ -34,14 +34,15 @@ interface RepositoryInterface
     /**
      * Returns a filtered, sorted, and paginated set of entities.
      *
-     * @param array $filters   Format [field_name => value]
-     * @param array $sorts     Format [field_name => direction]
-     * @param int   $from      From/offset
-     * @param int   $size      Size/limit
+     * @param array $filters Format [field_name => value]
+     * @param array $searchParams Format [field_name => value]
+     * @param array $sorts Format [field_name => direction]
+     * @param int $from From/offset
+     * @param int $size Size/limit
      *
      * @return EntityInterface[]
      */
-    public function findBy(array $filters, array $sorts, int $from, int $size): array;
+    public function findBy(array $filters, array $searchParams, array $sorts, int $from, int $size): array;
 
     /**
      * Inserts new entity or updates existing entity if a duplicate error occurs.
