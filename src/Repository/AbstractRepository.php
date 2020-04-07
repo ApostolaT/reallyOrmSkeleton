@@ -218,8 +218,8 @@ abstract class AbstractRepository implements RepositoryInterface
             }
         }
         if ($searchParams !== []) {
-            foreach ($searchParams as $key => &$value) {
-                $query->bindParam(':' . $key, $value);
+            foreach ($searchParams as $key => $value) {
+                $query->bindValue(':' . $key, "%".$value."%");
             }
         }
         $query->execute();
