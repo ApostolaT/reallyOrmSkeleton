@@ -56,7 +56,7 @@ abstract class AbstractRepository implements RepositoryInterface
     }
 
     /**
-     * For child classes to return the field we can perform the search on
+     * For child classes to return the fields we can perform the search on
      * @return array Form ["field_name1", "field_name2" .... "field_nameN"]
      */
     public abstract function getSearchableFields(): array;
