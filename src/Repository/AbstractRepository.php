@@ -212,14 +212,14 @@ abstract class AbstractRepository implements RepositoryInterface
             $queryString = substr($queryString, 0, strlen($queryString) - 5);
         }
         $query = $this->pdo->prepare($queryString);
-        if ($searchParams !== []) {
-            foreach ($searchParams as $key => &$value) {
+        if ($filters !== []) {
+            foreach ($filters as $key => &$value) {
                 $query->bindValue(':' . $key, $value);
             }
         }
         if ($searchParams !== []) {
-            foreach ($searchParams as $key => $value) {
-                $query->bindValue(':' . $key, "%".$value."%");
+            foreach ($searchParams as $key => &$value) {
+                $query->bindValue(':' . $key, $value);
             }
         }
         $query->execute();
