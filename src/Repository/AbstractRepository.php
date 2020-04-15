@@ -196,7 +196,7 @@ abstract class AbstractRepository implements RepositoryInterface
      * This function counts all the table rows from the database
      * that have the columns with filter values
      * @param array $filters
-     * @param array $searchParams
+     * @param string $searchParam
      * @return mixed
      */
     public function countRowsBy(array $filters, string $searchParam): int
@@ -327,11 +327,6 @@ abstract class AbstractRepository implements RepositoryInterface
         if ($searchParam !== "") {
             foreach ($this->getSearchableFields() as $columnName) {
                 $query->bindValue(':' . $columnName, "%".$searchParam."%");
-            }
-        }
-        if ($sorts !== []) {
-            foreach ($sorts as $key => &$value) {
-                $query->bindParam(':' . $key, $value);
             }
         }
         if ($size !== 0) {
