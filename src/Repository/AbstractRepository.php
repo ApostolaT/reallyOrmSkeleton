@@ -138,6 +138,34 @@ abstract class AbstractRepository implements RepositoryInterface
     }
 
     /**
+     * @param string $filter
+     * @param string $searchValue
+     * @param string $sortParam
+     * @param int $resultsPerPage
+     * @param int $offset
+     * @return array
+     * @throws NoSuchRowException
+     */
+    public function findAll(
+        string $filter,
+        string $searchValue,
+        string $sortParam,
+        int $resultsPerPage,
+        int $offset
+    ): array {
+        $orderParam = ($sortParam !== "") ? ["name" => ($sortParam === "asc") ? "ASC" : "DESC"] : [];
+        $filter = ($filter !== "") ? ["role" => $filter] : [];
+
+        return $this->findBy(
+            $filter,
+            $searchValue,
+            $orderParam,
+            $resultsPerPage,
+            $offset
+        );
+    }
+
+    /**
      * @inheritDoc
      */
     public function insertOnDuplicateKeyUpdate(EntityInterface $entity): bool
